@@ -20,7 +20,8 @@ const ExerciseIcon = ({
     const g = muscleGroup?.toLowerCase() ?? '';
     if (g.includes('chest')) return 'chest';
     if (g.includes('back') || g.includes('trap')) return 'back';
-    if (g.includes('leg') || g.includes('quad') || g.includes('glute') || g.includes('hamstring') || g.includes('calf') || g.includes('calve')) return 'legs';
+    if (g.includes('glute')) return 'glutes';
+    if (g.includes('leg') || g.includes('quad') || g.includes('hamstring') || g.includes('calf') || g.includes('calve')) return 'legs';
     if (g.includes('shoulder') || g.includes('delt')) return 'shoulders';
     if (g.includes('bicep') || g.includes('tricep') || g.includes('arm')) return 'arms';
     if (g.includes('core')) return 'core';
@@ -48,6 +49,13 @@ const ExerciseIcon = ({
       <svg width={svgSize} height={svgSize} viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="2" strokeLinecap="round">
         <path d="M8 3v18M16 3v18"/>
         <path d="M5 9h14M5 15h14"/>
+      </svg>
+    ),
+    glutes: (
+      <svg width={svgSize} height={svgSize} viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="2" strokeLinecap="round">
+        <path d="M12 3v8"/>
+        <circle cx="7" cy="15" r="4"/>
+        <circle cx="17" cy="15" r="4"/>
       </svg>
     ),
     shoulders: (

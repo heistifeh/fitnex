@@ -1,13 +1,17 @@
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Search, Dumbbell } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import useStore from '@/store';
-import exerciseList from '@/data/exercises';
+import exerciseList, { MUSCLE_GROUPS, type MuscleGroupName } from '@/data/exercises';
 import { slideRight } from '@/animations/fitnex.variants';
 import { usePreferences } from '@/context/PreferencesContext';
 import ExerciseIcon from '@/components/ExerciseIcon';
+
+type GroupFilter = MuscleGroupName | 'All';
+
+const FILTERS: GroupFilter[] = ['All', ...MUSCLE_GROUPS];
 
 export default function AddExercise() {
   usePageTitle('Add exercise');
@@ -17,15 +21,26 @@ export default function AddExercise() {
   const { darkMode } = usePreferences();
 
   const [search, setSearch] = useState('');
+  const [group, setGroup] = useState<GroupFilter>('All');
   // Guards against a stray double-fire adding the exercise twice before the
   // back-navigation unmounts this page.
   const addingRef = useRef(false);
 
   if (!currentWorkout) navigate('/', { replace: true });
 
-  const filtered = exerciseList.filter((e) =>
-    e.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return exerciseList.filter((e) => {
+      if (group !== 'All' && e.muscleGroup !== group) return false;
+      if (!q) return true;
+      return (
+        e.name.toLowerCase().includes(q) ||
+        e.muscle.toLowerCase().includes(q) ||
+        e.muscleGroup.toLowerCase().includes(q) ||
+        e.equipment.toLowerCase().includes(q)
+      );
+    });
+  }, [search, group]);
 
   const handlePick = (name: string) => {
     if (addingRef.current) return;
@@ -63,6 +78,29 @@ export default function AddExercise() {
             className="w-full py-3 pl-11 pr-4 bg-gray-100 dark:bg-[#222] text-gray-900 dark:text-white rounded-xl outline-none focus:ring-2 focus:ring-tint placeholder:text-gray-400 dark:placeholder:text-[#555]"
           />
         </div>
+
+        <div
+          className="flex gap-2 mt-3 -mx-3 px-3 overflow-x-auto"
+          style={{ scrollbarWidth: 'none', touchAction: 'pan-x' }}
+        >
+          {FILTERS.map((g) => {
+            const active = group === g;
+            return (
+              <button
+                key={g}
+                onClick={() => setGroup(g)}
+                style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
+                  active
+                    ? 'bg-[#10B981] text-white'
+                    : 'bg-gray-100 dark:bg-[#222] text-gray-500 dark:text-[#888]'
+                }`}
+              >
+                {g}
+              </button>
+            );
+          })}
+        </div>
       </header>
 
       <div className="flex-1 px-4 py-3" style={{ touchAction: 'pan-y' }}>
@@ -81,9 +119,11 @@ export default function AddExercise() {
             className="w-full text-left flex items-center gap-3 py-3 border-b border-gray-100 dark:border-[#1a1a1a] last:border-0 active:bg-gray-50 dark:active:bg-[#161616] rounded-lg"
           >
             <ExerciseIcon muscleGroup={ex.muscle} size={36} darkMode={darkMode} />
-            <div>
-              <p className="font-semibold text-sm dark:text-white">{ex.name}</p>
-              <p className="text-xs text-gray-400">{ex.muscle}</p>
+            <div className="min-w-0">
+              <p className="font-semibold text-sm dark:text-white truncate">{ex.name}</p>
+              <p className="text-xs text-gray-400 truncate">
+                {ex.muscle} &middot; {ex.equipment}
+              </p>
             </div>
           </button>
         ))}
